@@ -1,8 +1,22 @@
 [
   {
     "featureType": "poi",
-    "stylers": [
-      { "visibility": "off" }
-    ]
+    "elementType": "all",
+    "stylers": [{ "visibility": "off" }]
+  },
+  {
+    "featureType": "transit",
+    "elementType": "all",
+    "stylers": [{ "visibility": "off" }]
+  },
+  {
+    "featureType": "landscape.man_made",
+    "elementType": "geometry.fill",
+    "stylers": [{ "visibility": "off" }]
+  },
+  {
+    "featureType": "landscape.man_made",
+    "elementType": "geometry.stroke",
+    "stylers": [{ "visibility": "off" }]
   }
 ]
