@@ -8,5 +8,12 @@
         <item name="colorOnPrimary">@android:color/white</item>
     </style>
 
+    <!-- Tema forzado a modo claro para actividades con listas -->
+    <style name="Theme.ESCOMAPPCELULAR.Light" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+    </style>
+
 </resources>
 

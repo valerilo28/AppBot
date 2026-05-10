@@ -84,9 +84,13 @@ class MainActivity : AppCompatActivity() {
     // El fab del PDF ahora es ExtendedFloatingActionButton
 
         val btnMapa = findViewById<Button>(R.id.btnMapa)
-
         btnMapa.setOnClickListener {
             startActivity(Intent(this, Mapa::class.java))
+        }
+
+        val btnConsultar = findViewById<Button>(R.id.btnConsultar)
+        btnConsultar.setOnClickListener {
+            startActivity(Intent(this, ConsultarActivity::class.java))
         }
     }
 

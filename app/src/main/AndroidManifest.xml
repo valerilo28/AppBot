@@ -17,6 +17,15 @@
         android:windowSoftInputMode="adjustResize"
         android:theme="@style/Theme.ESCOMAPPCELULAR">
         <activity android:name=".Mapa" />
+        <activity android:name=".ConsultarActivity" />
+        <activity android:name=".AreasListaActivity" android:theme="@style/Theme.ESCOMAPPCELULAR.Light"/>
+        <activity android:name=".AreaDetalleActivity" android:theme="@style/Theme.ESCOMAPPCELULAR.Light"/>
+        <activity
+            android:name=".ProfesoresListaActivity"
+            android:theme="@style/Theme.ESCOMAPPCELULAR.Light"/>
+        <activity android:name=".ProfesorDetalleActivity"/>
+        <activity android:name=".BecasListaActivity"/>
+        <activity android:name=".BecaDetalleActivity"/>
         <activity
             android:name=".ChatbotActivity"
             android:label="ESCOMbot"
