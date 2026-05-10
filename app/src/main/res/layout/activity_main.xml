@@ -22,20 +22,18 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Hamburger -->
-        <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@android:drawable/ic_menu_sort_by_size"
-            app:tint="#333333"/>
 
         <!-- Logo ESCOM -->
         <ImageView
             android:id="@+id/logo_escom"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:src="@drawable/escom_logo"
             android:layout_marginStart="10dp"
-            android:scaleType="centerCrop"/>
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"/>
 
         <!-- Título -->
         <TextView
