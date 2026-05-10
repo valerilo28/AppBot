@@ -149,7 +149,6 @@ class MainActivity : AppCompatActivity() {
             findViewById<android.widget.ScrollView>(R.id.scrollMain).smoothScrollTo(0, 0)
         }
         findViewById<Button>(R.id.btnConsultar).setOnClickListener {
-            startActivity(Intent(this, ConsultarActivity::class.java))
         }
         findViewById<Button>(R.id.btnMapa).setOnClickListener {
             startActivity(Intent(this, Mapa::class.java))
