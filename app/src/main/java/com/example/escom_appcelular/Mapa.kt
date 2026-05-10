@@ -35,25 +35,22 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
     private var marcadorActual: Marker? = null
     private var nivelActual = 1
 
-    private val tiposSeleccionados = mutableSetOf<String>()
+    private val tiposSeleccionados = mutableSetOf(
+        "Salon", "Sala", "Area Comun", "Area Administrativa",
+        "Cubiculo", "Laboratorio", "Club"
+    )
     private var profesorSeleccionado: String? = null
 
-    // ── Flag que indica que la próxima carga de polígonos
-    //    debe terminar buscando al profesor (no hay callback lambda
-    //    que pueda corromperse por carreras de red)
     private var buscarProfesorAlTerminar = false
 
-    // Token que se incrementa cada vez que iniciamos una nueva búsqueda de profesor.
-    // Si la respuesta llega con un token distinto al actual, se ignora (respuesta obsoleta).
+    // Token para invalidar respuestas obsoletas de búsquedas anteriores
     private var tokenBusqueda = 0
-
-    // Flag para silenciar los listeners de checkbox mientras los actualizamos por código
-    private var actualizandoFiltros = false
 
     private val tiposDisponibles = listOf(
         "Salon", "Sala", "Area Comun", "Area Administrativa",
         "Cubiculo", "Laboratorio", "Club"
     )
+    // checkboxMap solo se usa para referencia; la fuente de verdad es tiposSeleccionados
     private val checkboxMap = mutableMapOf<String, CheckBox>()
 
     // ─────────────────────────────────────────────────────────────
@@ -79,15 +76,14 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
         val panelFiltros     = findViewById<ScrollView>(R.id.panelFiltros)
         val layoutCheckboxes = findViewById<LinearLayout>(R.id.layoutCheckboxes)
 
-        construirCheckboxes(layoutCheckboxes)
-
+        // Reconstruir checkboxes cada vez que se abre el panel,
+        // garantizando que reflejan el estado actual de tiposSeleccionados.
         btnFiltros.setOnClickListener {
             if (panelFiltros.visibility == View.VISIBLE) {
                 panelFiltros.visibility = View.INVISIBLE
                 btnFiltros.text = "Filtros ▾"
             } else {
-                // Sincronizar estado visual antes de mostrar
-                sincronizarCheckboxes()
+                construirCheckboxes(layoutCheckboxes)   // siempre reconstruir
                 panelFiltros.visibility = View.VISIBLE
                 btnFiltros.text = "Filtros ▴"
             }
@@ -149,14 +145,31 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
         nivelActual = nivel
         actualizarBotonesUI(nivelActual)
 
-        // Si había un profesor buscado, limpiar su estado.
-        // Los checkboxes de tipo se mantienen al cambiar de piso.
+        // Resetear profesor
         if (profesorSeleccionado != null) {
             profesorSeleccionado = null
             buscarProfesorAlTerminar = false
-            tokenBusqueda++   // invalida cualquier petición en vuelo
+            tokenBusqueda++
             limpiarMarcadores()
             findViewById<EditText>(R.id.editTextProfesor).setText("")
+        }
+
+        // Seleccionar todos los tipos al cambiar de piso
+        tiposSeleccionados.clear()
+        tiposSeleccionados.addAll(tiposDisponibles)
+        // Actualizar checkboxes si el panel está abierto
+        checkboxMap.forEach { (tipo, cb) ->
+            cb.setOnCheckedChangeListener(null)
+            cb.isChecked = true
+            setCheckboxColor(cb, true, tipo)
+            cb.setOnCheckedChangeListener { _, isChecked ->
+                setCheckboxColor(cb, isChecked, tipo)
+                if (isChecked) tiposSeleccionados.add(tipo) else tiposSeleccionados.remove(tipo)
+                profesorSeleccionado = null
+                buscarProfesorAlTerminar = false
+                limpiarMarcadores()
+                cargarPoligonos()
+            }
         }
 
         cargarPoligonos()
@@ -164,6 +177,9 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
 
     // ─────────────────────────────────────────────────────────────
     // Checkboxes de tipo
+    // FIX PRINCIPAL: el listener se asigna DESPUÉS de setChecked,
+    // evitando que se dispare durante la construcción del panel.
+    // tiposSeleccionados es siempre la fuente de verdad.
     // ─────────────────────────────────────────────────────────────
 
     private fun construirCheckboxes(container: LinearLayout) {
@@ -175,11 +191,7 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
             cb.text          = tipo
             cb.textSize      = 13f
             cb.setTypeface(null, Typeface.BOLD)
-            // Crucial: evitar que Android destruya/restaure el estado de forma
-            // inconsistente al ocultar/mostrar el panel
             cb.isSaveEnabled = false
-            cb.isChecked     = tiposSeleccionados.contains(tipo)
-            setCheckboxColor(cb, cb.isChecked, tipo)
 
             val lp = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -187,8 +199,16 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
             ).apply { setMargins(0, 4, 0, 4) }
             cb.layoutParams = lp
 
+            // ── 1. Aplicar color y estado visual SIN listener activo ──
+            val estaSeleccionado = tiposSeleccionados.contains(tipo)
+            setCheckboxColor(cb, estaSeleccionado, tipo)
+
+            // Nullear el listener primero para que setChecked no dispare nada
+            cb.setOnCheckedChangeListener(null)
+            cb.isChecked = estaSeleccionado
+
+            // ── 2. Asignar el listener DESPUÉS de setChecked ──────────
             cb.setOnCheckedChangeListener { _, isChecked ->
-                if (actualizandoFiltros) return@setOnCheckedChangeListener
                 setCheckboxColor(cb, isChecked, tipo)
                 if (isChecked) tiposSeleccionados.add(tipo) else tiposSeleccionados.remove(tipo)
                 profesorSeleccionado = null
@@ -206,48 +226,41 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
         val colorActivo = getColorByTipo(tipo)
         val colorGris   = Color.parseColor("#9E9E9E")
 
-        // Texto
         cb.setTextColor(if (checked) colorActivo else colorGris)
 
-        // ColorStateList que controla checked Y unchecked explícitamente,
-        // ignorando el color primario del tema de Android
         val states = arrayOf(
-            intArrayOf( android.R.attr.state_checked),   // checked
-            intArrayOf(-android.R.attr.state_checked)    // unchecked
+            intArrayOf( android.R.attr.state_checked),
+            intArrayOf(-android.R.attr.state_checked)
         )
         val colors = intArrayOf(
-            if (checked) colorActivo else colorGris,     // checked → color del tipo o gris
-            colorGris                                    // unchecked → siempre gris
+            if (checked) colorActivo else colorGris,
+            colorGris
         )
         cb.buttonTintList = android.content.res.ColorStateList(states, colors)
     }
 
     /**
-     * Desmarca todos los checkboxes y limpia tiposSeleccionados
-     * SIN disparar cargarPoligonos ni loops. Seguro llamarlo desde cualquier sitio.
+     * Limpia tiposSeleccionados y desmarca checkboxes si el panel está abierto.
+     * No llama a cargarPoligonos (responsabilidad del llamador).
      */
     private fun limpiarCheckboxesSilenciosamente() {
-        actualizandoFiltros = true
         tiposSeleccionados.clear()
+        // Actualizar la UI de los checkboxes si ya están en pantalla
         checkboxMap.forEach { (tipo, cb) ->
+            // Quitar listener temporalmente para no disparar lógica de negocio
+            cb.setOnCheckedChangeListener(null)
             cb.isChecked = false
             setCheckboxColor(cb, false, tipo)
+            // Restaurar listener
+            cb.setOnCheckedChangeListener { _, isChecked ->
+                setCheckboxColor(cb, isChecked, tipo)
+                if (isChecked) tiposSeleccionados.add(tipo) else tiposSeleccionados.remove(tipo)
+                profesorSeleccionado = null
+                buscarProfesorAlTerminar = false
+                limpiarMarcadores()
+                cargarPoligonos()
+            }
         }
-        actualizandoFiltros = false
-    }
-
-    /**
-     * Sincroniza el estado visual de cada checkbox con tiposSeleccionados.
-     * Llamar justo antes de hacer visible el panel para garantizar consistencia.
-     */
-    private fun sincronizarCheckboxes() {
-        actualizandoFiltros = true
-        checkboxMap.forEach { (tipo, cb) ->
-            val seleccionado = tiposSeleccionados.contains(tipo)
-            cb.isChecked = seleccionado
-            setCheckboxColor(cb, seleccionado, tipo)
-        }
-        actualizandoFiltros = false
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -264,24 +277,16 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(editText.windowToken, 0)
 
-        // Incrementar token para invalidar cualquier búsqueda anterior en vuelo
         tokenBusqueda++
         val miToken = tokenBusqueda
 
-        // Paso 1: averiguar en qué salón está el profesor
         buscarSalonDelProfesor(nombre, miToken)
     }
 
     // ─────────────────────────────────────────────────────────────
-    // FLUJO DE BÚSQUEDA DE PROFESOR — completamente independiente
-    // de cargarPoligonos para evitar condiciones de carrera
+    // FLUJO DE BÚSQUEDA DE PROFESOR
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Paso 1: consulta /ultimo_salon_profesor.
-     * Cuando llega la respuesta decide si hay que cambiar de nivel o no,
-     * y en ambos casos llama cargarPoligonosYBuscar(salon).
-     */
     private fun buscarSalonDelProfesor(profesor: String, token: Int) {
         val url = "https://api-escomapp.onrender.com/ultimo_salon_profesor?profesor=${
             URLEncoder.encode(profesor, "utf-8")
@@ -290,7 +295,6 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
 
         val request = JsonObjectRequest(Request.Method.GET, url, null,
             { response ->
-                // Ignorar si ya se inició una búsqueda más nueva
                 if (token != tokenBusqueda) return@JsonObjectRequest
 
                 val salon = response.optString("salon", "")
@@ -304,7 +308,6 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
                     return@JsonObjectRequest
                 }
 
-                // El API puede devolver el nivel directamente; si no, lo deducimos del código
                 val nivelApi   = response.optInt("nivel", -1)
                 val nivelSalon = if (nivelApi in 1..3) nivelApi else nivelDesdeSalon(salon)
 
@@ -324,12 +327,7 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
         queue.add(request)
     }
 
-    /**
-     * Paso 2: carga los polígonos del nivel actual y al terminar busca el salón.
-     * Usa token para ignorar respuestas de búsquedas anteriores que lleguen tarde.
-     */
     private fun cargarPoligonosYBuscar(salon: String, token: Int) {
-        // Limpiar polígonos anteriores ANTES de lanzar la petición
         listaPoligonos.forEach { it.remove() }
         listaPoligonos.clear()
         limpiarMarcadores()
@@ -340,14 +338,14 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
 
         val request = JsonObjectRequest(Request.Method.GET, url, null,
             { response ->
-                // Si el usuario ya buscó otro profesor mientras llegaba esta respuesta, ignorar
                 if (token != tokenBusqueda) {
                     Log.d("API", "Respuesta obsoleta ignorada (token=$token, actual=$tokenBusqueda)")
                     return@JsonObjectRequest
                 }
 
-                val boundsBuilder = LatLngBounds.Builder()
-                var anyAdded      = false
+                val poligonosNuevos  = mutableListOf<Polygon>()
+                val boundsBuilder    = LatLngBounds.Builder()
+                var anyAdded         = false
 
                 if (response.has("features")) {
                     val features = response.getJSONArray("features")
@@ -362,19 +360,20 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
                         if (gtype == "Polygon") {
                             val coords = geometry.getJSONArray("coordinates").getJSONArray(0)
                             val poly   = crearPoligonoDesdeCoords(coords, tipo, codigo, boundsBuilder)
-                            if (poly != null) { listaPoligonos.add(poly); anyAdded = true }
+                            if (poly != null) { poligonosNuevos.add(poly); anyAdded = true }
                         } else if (gtype == "MultiPolygon") {
                             val mp = geometry.getJSONArray("coordinates")
                             for (p in 0 until mp.length()) {
                                 val coords = mp.getJSONArray(p).getJSONArray(0)
                                 val poly   = crearPoligonoDesdeCoords(coords, tipo, codigo, boundsBuilder)
-                                if (poly != null) { listaPoligonos.add(poly); anyAdded = true }
+                                if (poly != null) { poligonosNuevos.add(poly); anyAdded = true }
                             }
                         }
                     }
                 }
 
                 runOnUiThread {
+                    listaPoligonos.addAll(poligonosNuevos)
                     try {
                         if (anyAdded) map.moveCamera(
                             CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 100)
@@ -408,7 +407,7 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
                 }
                 if (lista.isEmpty()) { listView.visibility = View.GONE; return@JsonObjectRequest }
 
-                listView.adapter   = ArrayAdapter(this, R.layout.item_sugerencia, lista)
+                listView.adapter    = ArrayAdapter(this, R.layout.item_sugerencia, lista)
                 listView.visibility = View.VISIBLE
                 listView.setOnItemClickListener { _, _, position, _ ->
                     val nombre = lista[position]
@@ -522,7 +521,6 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
 
     // ─────────────────────────────────────────────────────────────
     // Carga normal de polígonos (filtros de tipo / cambio de piso)
-    // NO tiene lógica de profesor para evitar interferencias
     // ─────────────────────────────────────────────────────────────
 
     private fun cargarPoligonos() {
@@ -532,10 +530,9 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
 
         val base = "https://api-escomapp.onrender.com/Nivel$nivelActual"
 
-        if (tiposSeleccionados.isEmpty()) {
-            fetchYProcesar(base)
-        } else {
-            fetchMultiTipo(base, tiposSeleccionados.toList())
+        when {
+            tiposSeleccionados.isEmpty() -> { /* sin filtros = no mostrar nada */ }
+            else -> fetchMultiTipo(base, tiposSeleccionados.toList())
         }
     }
 
@@ -551,14 +548,16 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
 
     private fun fetchMultiTipo(base: String, tipos: List<String>) {
         val boundsBuilder = LatLngBounds.Builder()
-        var anyAdded = false
-        var pending  = tipos.size
+        var anyAdded      = false
+        var pending       = tipos.size
 
         tipos.forEach { tipo ->
             val url   = "$base?tipo=${URLEncoder.encode(tipo, "utf-8")}"
             val queue = Volley.newRequestQueue(this)
+
             val request = JsonObjectRequest(Request.Method.GET, url, null,
                 { response ->
+                    val locales = mutableListOf<Polygon>()
                     if (response.has("features")) {
                         val features = response.getJSONArray("features")
                         for (i in 0 until features.length()) {
@@ -571,20 +570,22 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
                             if (gtype == "Polygon") {
                                 val coords = geometry.getJSONArray("coordinates").getJSONArray(0)
                                 val poly   = crearPoligonoDesdeCoords(coords, tipoF, codigo, boundsBuilder)
-                                if (poly != null) { listaPoligonos.add(poly); anyAdded = true }
+                                if (poly != null) { locales.add(poly); anyAdded = true }
                             } else if (gtype == "MultiPolygon") {
                                 val mp = geometry.getJSONArray("coordinates")
                                 for (p in 0 until mp.length()) {
                                     val coords = mp.getJSONArray(p).getJSONArray(0)
                                     val poly   = crearPoligonoDesdeCoords(coords, tipoF, codigo, boundsBuilder)
-                                    if (poly != null) { listaPoligonos.add(poly); anyAdded = true }
+                                    if (poly != null) { locales.add(poly); anyAdded = true }
                                 }
                             }
                         }
                     }
-                    pending--
-                    if (pending == 0) {
-                        runOnUiThread {
+                    // Modificar listaPoligonos solo desde el hilo principal
+                    runOnUiThread {
+                        listaPoligonos.addAll(locales)
+                        pending--
+                        if (pending == 0) {
                             try {
                                 if (anyAdded) map.animateCamera(
                                     CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 100)
@@ -595,7 +596,7 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
                 },
                 { error ->
                     Log.e("API", "Error multi-tipo: ${error.message}")
-                    pending--
+                    runOnUiThread { pending-- }
                 }
             )
             queue.add(request)
@@ -631,14 +632,12 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-        // Centrar cámara en el nivel
         try {
             if (anyAdded) map.animateCamera(
                 CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 100)
             )
         } catch (_: Exception) {}
 
-        // Si se cambió de piso con un profesor activo, buscarlo
         if (buscarProfesorAlTerminar && profesorSeleccionado != null) {
             buscarProfesorAlTerminar = false
             tokenBusqueda++
@@ -750,7 +749,7 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
     private fun onPolygonClicked(polygon: Polygon) {
         marcadorActual?.remove()
         marcadorActual = null
-        val tag = polygon.tag as? JSONObject ?: return
+        val tag    = polygon.tag as? JSONObject ?: return
         val codigo = tag.optString("codigo", "sin código")
         val lat    = tag.optDouble("lat", Double.NaN)
         val lng    = tag.optDouble("lng", Double.NaN)
@@ -785,8 +784,6 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
         btnPiso3.setBackgroundColor(if (nivel == 3) Color.BLUE else Color.GRAY)
     }
 
-    // Fallback: solo se usa si el API no devuelve el campo "nivel".
-    // Con el API actualizado (main.py) esto nunca debería ejecutarse.
     private fun nivelDesdeSalon(salon: String): Int = when {
         salon.startsWith("10") -> 1
         salon.startsWith("11") -> 2
