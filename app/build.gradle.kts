@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("com.google.android.gms:play-services-maps:19.2.0")
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("com.android.volley:volley:1.2.1")

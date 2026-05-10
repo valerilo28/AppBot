@@ -30,11 +30,12 @@
 
         <!-- Logo ESCOM -->
         <ImageView
+            android:id="@+id/logo_escom"
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:src="@drawable/logo_escom"
+            android:src="@drawable/escom_logo"
             android:layout_marginStart="10dp"
-            android:scaleType="fitCenter"/>
+            android:scaleType="centerCrop"/>
 
         <!-- Título -->
         <TextView
@@ -77,6 +78,7 @@
                 card:cardElevation="4dp">
 
                 <ImageView
+                    android:id="@+id/imgBanner"
                     android:layout_width="match_parent"
                     android:layout_height="180dp"
                     android:src="@drawable/escom_building"
@@ -84,41 +86,115 @@
 
             </androidx.cardview.widget.CardView>
 
-            <!-- ===== SECCIÓN DOS COLUMNAS ===== -->
+            <!-- ===== SECCIÓN DOS COLUMNAS: Calendario + Redes ===== -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="300dp"
                 android:orientation="horizontal"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 android:layout_marginTop="4dp">
 
-                <!-- COLUMNA IZQUIERDA: Calendario -->
+                <!-- COLUMNA IZQUIERDA: Calendario PDF (WebView + overlay) -->
                 <androidx.cardview.widget.CardView
                     xmlns:card="http://schemas.android.com/apk/res-auto"
+                    android:id="@+id/cardCalendario"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1.2"
                     android:layout_marginEnd="8dp"
                     card:cardCornerRadius="12dp"
-                    card:cardElevation="3dp">
+                    card:cardElevation="3dp"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:background="@android:color/white">
 
-                        <WebView
-                            android:id="@+id/webView"
+                        <!-- FrameLayout: preview PDF + spinner de carga + overlay -->
+                        <FrameLayout
                             android:layout_width="match_parent"
-                            android:layout_height="200dp"/>
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:background="#EEF3FA">
 
-                        <!-- Botón abrir PDF -->
+                            <!-- ImageView: muestra la página 1 del PDF renderizada -->
+                            <ImageView
+                                android:id="@+id/imgCalendarioPreview"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:background="#EEF3FA"
+                                android:visibility="gone"/>
+
+                            <!-- Placeholder mientras carga -->
+                            <LinearLayout
+                                android:id="@+id/layoutCalendarioPlaceholder"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:background="#EEF3FA">
+
+                                <ProgressBar
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:indeterminateTint="#003972"/>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Cargando calendario..."
+                                    android:textColor="#003972"
+                                    android:textSize="11sp"
+                                    android:layout_marginTop="8dp"/>
+                            </LinearLayout>
+
+                            <!-- Overlay inferior: siempre visible sobre la imagen -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="bottom"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:paddingTop="12dp"
+                                android:paddingBottom="10dp"
+                                android:background="#CC003972">
+
+                                <ImageView
+                                    android:layout_width="28dp"
+                                    android:layout_height="28dp"
+                                    android:src="@android:drawable/ic_menu_month"
+                                    app:tint="#FFFFFF"/>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Calendario Escolar IPN"
+                                    android:textColor="#FFFFFF"
+                                    android:textStyle="bold"
+                                    android:textSize="11sp"
+                                    android:gravity="center"
+                                    android:layout_marginTop="4dp"/>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Toca para ver"
+                                    android:textColor="#AADDFF"
+                                    android:textSize="10sp"
+                                    android:layout_marginTop="2dp"/>
+                            </LinearLayout>
+                        </FrameLayout>
+
+                        <!-- Botón Ver completo -->
                         <LinearLayout
                             android:id="@+id/fab"
                             android:layout_width="match_parent"
-                            android:layout_height="40dp"
+                            android:layout_height="36dp"
                             android:orientation="horizontal"
                             android:gravity="center"
                             android:background="#003972"
@@ -126,8 +202,8 @@
                             android:focusable="true">
 
                             <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
+                                android:layout_width="14dp"
+                                android:layout_height="14dp"
                                 android:src="@android:drawable/ic_menu_view"
                                 app:tint="#FFFFFF"/>
 
@@ -136,7 +212,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Ver completo"
                                 android:textColor="#FFFFFF"
-                                android:textSize="11sp"
+                                android:textSize="10sp"
                                 android:layout_marginStart="4dp"/>
                         </LinearLayout>
                     </LinearLayout>
@@ -147,7 +223,8 @@
                     xmlns:card="http://schemas.android.com/apk/res-auto"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="0.8"
                     android:layout_marginStart="8dp"
                     card:cardCornerRadius="12dp"
                     card:cardElevation="3dp">
@@ -157,7 +234,10 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:background="@android:color/white"
-                        android:padding="12dp">
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:paddingTop="14dp"
+                        android:paddingBottom="14dp">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -165,104 +245,229 @@
                             android:text="Redes Sociales"
                             android:textColor="#1A1A1A"
                             android:textStyle="bold"
-                            android:textSize="14sp"
-                            android:layout_marginBottom="12dp"
+                            android:textSize="12sp"
+                            android:layout_marginBottom="6dp"
                             android:layout_gravity="center_horizontal"/>
 
                         <!-- Facebook -->
                         <LinearLayout
                             android:id="@+id/btnFacebook"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:padding="8dp"
+                            android:layout_height="48dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingStart="6dp"
+                            android:paddingEnd="6dp"
                             android:clickable="true"
                             android:focusable="true"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:layout_marginBottom="8dp">
+                            android:background="?attr/selectableItemBackground">
 
-                            <!-- Ícono Facebook -->
                             <ImageView
-                                android:layout_width="48dp"
-                                android:layout_height="48dp"
+                                android:id="@+id/imgFacebook"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
                                 android:src="@drawable/ic_facebook"
-                                android:scaleType="fitCenter"/>
+                                android:scaleType="centerCrop"/>
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Facebook"
                                 android:textColor="#333333"
-                                android:textSize="12sp"
-                                android:layout_marginTop="4dp"
-                                android:gravity="center"/>
+                                android:textSize="11sp"
+                                android:layout_marginStart="8dp"/>
                         </LinearLayout>
 
                         <!-- WhatsApp -->
                         <LinearLayout
                             android:id="@+id/btnWhats"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:padding="8dp"
+                            android:layout_height="48dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingStart="6dp"
+                            android:paddingEnd="6dp"
                             android:clickable="true"
                             android:focusable="true"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:layout_marginBottom="8dp">
+                            android:background="?attr/selectableItemBackground">
 
                             <ImageView
-                                android:layout_width="48dp"
-                                android:layout_height="48dp"
+                                android:id="@+id/imgWhatsapp"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
                                 android:src="@drawable/ic_whatsapp"
-                                android:scaleType="fitCenter"/>
+                                android:scaleType="centerCrop"/>
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Grupo de\nWhatsApp"
+                                android:text="WhatsApp"
                                 android:textColor="#333333"
-                                android:textSize="12sp"
-                                android:layout_marginTop="4dp"
-                                android:gravity="center"/>
+                                android:textSize="11sp"
+                                android:layout_marginStart="8dp"/>
                         </LinearLayout>
 
                         <!-- Página web -->
                         <LinearLayout
                             android:id="@+id/btnWeb"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:padding="8dp"
+                            android:layout_height="48dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingStart="6dp"
+                            android:paddingEnd="6dp"
                             android:clickable="true"
                             android:focusable="true"
-                            android:background="?attr/selectableItemBackgroundBorderless">
+                            android:background="?attr/selectableItemBackground">
 
                             <ImageView
-                                android:layout_width="48dp"
-                                android:layout_height="48dp"
+                                android:id="@+id/img_web"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
                                 android:src="@drawable/ic_web"
-                                android:scaleType="fitCenter"/>
+                                android:scaleType="centerCrop"/>
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Página\nWeb Oficial"
+                                android:text="Página Web"
                                 android:textColor="#333333"
-                                android:textSize="12sp"
-                                android:layout_marginTop="4dp"
-                                android:gravity="center"/>
+                                android:textSize="11sp"
+                                android:layout_marginStart="8dp"/>
                         </LinearLayout>
 
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
             </LinearLayout>
+
+            <!-- ===== SECCIÓN FACEBOOK EMBED ===== -->
+            <androidx.cardview.widget.CardView
+                xmlns:card="http://schemas.android.com/apk/res-auto"
+                android:layout_width="match_parent"
+                android:layout_height="610dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="16dp"
+                card:cardCornerRadius="12dp"
+                card:cardElevation="3dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:background="@android:color/white"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Facebook ESCOM Oficial"
+                        android:textColor="#1A1A1A"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="8dp"/>
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1">
+
+                        <WebView
+                            android:id="@+id/webFacebook"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"/>
+
+                        <LinearLayout
+                            android:id="@+id/placeholderFacebook"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:background="@android:color/white">
+
+                            <ProgressBar
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:indeterminateTint="#1877F2"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Cargando Facebook..."
+                                android:textColor="#1877F2"
+                                android:textSize="12sp"
+                                android:layout_marginTop="10dp"/>
+                        </LinearLayout>
+                    </FrameLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ===== SECCIÓN INSTAGRAM EMBED ===== -->
+            <androidx.cardview.widget.CardView
+                xmlns:card="http://schemas.android.com/apk/res-auto"
+                android:layout_width="match_parent"
+                android:layout_height="610dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="16dp"
+                card:cardCornerRadius="12dp"
+                card:cardElevation="3dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:background="@android:color/white"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Instagram ESCOM Oficial"
+                        android:textColor="#1A1A1A"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="8dp"/>
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1">
+
+                        <WebView
+                            android:id="@+id/webInstagram"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"/>
+
+                        <LinearLayout
+                            android:id="@+id/placeholderInstagram"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:background="@android:color/white">
+
+                            <ProgressBar
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:indeterminateTint="#C13584"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Cargando Instagram..."
+                                android:textColor="#C13584"
+                                android:textSize="12sp"
+                                android:layout_marginTop="10dp"/>
+                        </LinearLayout>
+                    </FrameLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
         </LinearLayout>
     </ScrollView>
 
-    <!-- ===== FAB CHATBOT (robot) ===== -->
+    <!-- ===== FAB CHATBOT ===== -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabChat"
         android:layout_width="wrap_content"
