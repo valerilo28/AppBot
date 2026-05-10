@@ -1,46 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Mapa de fondo -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Encabezado superior -->
     <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="wrap_content"
+        android:id="@+id/layoutHeader"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|center_horizontal"
-        android:padding="8dp">
+        android:layout_gravity="top"
+        android:background="#FFFFFF"
+        android:elevation="4dp">
 
-        <Button
-            android:id="@+id/btnPiso1"
-            android:text="Piso 1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <Button
-            android:id="@+id/btnPiso2"
-            android:text="Piso 2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <Button
-            android:id="@+id/btnPiso3"
-            android:text="Piso 3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+        <!-- Fila del logo -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
 
-        <Spinner
-            android:id="@+id/spinnerMarcador"
-            android:layout_width="wrap_content"
+            <ImageView
+                android:id="@+id/imgLogo"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/escom_logo"
+                android:scaleType="fitCenter" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ESCOMobile"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#1A1A1A"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <!-- Barra de búsqueda -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/bg_search_bar"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="8dp">
+
+            <EditText
+                android:id="@+id/editTextProfesor"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:hint="Buscar profesor..."
+                android:textSize="14sp"
+                android:textColor="#212121"
+                android:textColorHint="#1565C0"
+                android:background="@null"
+                android:inputType="text"
+                android:imeOptions="actionSearch"
+                android:maxLines="1" />
+
+            <ImageButton
+                android:id="@+id/btnBuscarProfesor"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@android:drawable/ic_menu_search"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Buscar profesor" />
+        </LinearLayout>
+
+        <!-- Lista de sugerencias de profesores -->
+        <ListView
+            android:id="@+id/listViewSugerencias"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:padding="12dp"
-            />
+            android:maxHeight="220dp"
+            android:scrollbars="vertical"
+            android:background="#FFFFFF"
+            android:visibility="gone"
+            android:elevation="6dp"
+            android:divider="#E0E0E0"
+            android:dividerHeight="1dp" />
 
     </LinearLayout>
 
+    <!--
+        LinearLayout vertical que agrupa la fila de botones + el panel
+        desplegable. Anclado arriba-derecha para que el panel siempre
+        aparezca justo debajo del botón "Filtros".
+    -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="108dp"
+        android:layout_marginEnd="8dp"
+        android:orientation="vertical">
+
+        <!-- Fila: botones de piso + Filtros -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnPiso1"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:text="Piso 1"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btnPiso2"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:text="Piso 2"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btnPiso3"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:text="Piso 3"
+                android:textSize="12sp" />
+
+            <!-- Botón Filtros -->
+            <Button
+                android:id="@+id/btnFiltros"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Filtros ▾"
+                android:textSize="12sp"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#1565C0"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp" />
+
+        </LinearLayout>
+
+        <!--
+            Panel de checkboxes: aparece inmediatamente debajo de los botones
+            gracias al LinearLayout vertical padre. layout_gravity="end" lo
+            alinea a la derecha (bajo el botón Filtros). Oculto por defecto.
+        -->
+        <ScrollView
+            android:id="@+id/panelFiltros"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:background="#F5F5F5"
+            android:elevation="8dp"
+            android:visibility="invisible">
+
+            <LinearLayout
+                android:id="@+id/layoutCheckboxes"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp" />
+
+        </ScrollView>
+
+    </LinearLayout>
+
+    <!-- FAB Chatbot -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabChat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="90dp"
+        android:src="@drawable/ic_chat"
+        android:contentDescription="Chatbot"
+        app:backgroundTint="#2196F3"
+        app:fabSize="normal" />
+
+    <!-- Barra de navegación inferior -->
+    <FrameLayout
+        android:id="@+id/bottomNavContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:padding="12dp"
+        android:background="@android:color/white">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:orientation="horizontal"
+            android:background="@drawable/bottom_nav_pill"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/btnInicio"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Inicio"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:background="@android:color/transparent"/>
+
+            <Button
+                android:id="@+id/btnConsultar"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Consultar"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:background="@android:color/transparent"/>
+
+            <Button
+                android:id="@+id/btnMapa"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Mapa"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:background="@android:color/transparent"/>
+
+        </LinearLayout>
+    </FrameLayout>
 
 </FrameLayout>
