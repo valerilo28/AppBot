@@ -19,42 +19,18 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // ===== WebView =====
-        val webView = findViewById<WebView>(R.id.webView)
-
-        webView.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(
-                view: WebView?,
-                request: WebResourceRequest?
-            ): Boolean {
-                view?.loadUrl(request?.url.toString())
-                return true
-            }
-        }
-
-        val settings = webView.settings
-        settings.javaScriptEnabled = true
-        settings.domStorageEnabled = true
-
-        //  Zoom (sin botones)
-        settings.setSupportZoom(true)
-        settings.builtInZoomControls = true
-        settings.displayZoomControls = false
-
-        //  Ajuste pantalla
-        settings.loadWithOverviewMode = true
-        settings.useWideViewPort = true
-
-        //  Permisos internos
-        settings.allowFileAccess = true
-        settings.allowContentAccess = true
-        settings.loadsImagesAutomatically = true
-
-        // ===== PDF =====
+        // ===== PDF URL =====
         val pdfUrl = "https://www.ipn.mx/assets/files/website/docs/inicio/calendarioipn-escolarizada.pdf"
-        val viewer = "https://drive.google.com/viewerng/viewer?embedded=true&url=$pdfUrl"
 
-        webView.loadUrl(viewer)
+        // ===== WebView Facebook =====
+        val webFacebook = findViewById<WebView>(R.id.webFacebook)
+        setupWebView(webFacebook)
+        webFacebook.loadUrl("https://www.facebook.com/ESCOMoficial")
+
+        // ===== WebView Instagram =====
+        val webInstagram = findViewById<WebView>(R.id.webInstagram)
+        setupWebView(webInstagram)
+        webInstagram.loadUrl("https://www.instagram.com/escom_ipn/")
 
         // ===== Botones redes =====
         val btnFacebook = findViewById<LinearLayout>(R.id.btnFacebook)
@@ -83,11 +59,39 @@ class MainActivity : AppCompatActivity() {
 
     // El fab del PDF ahora es ExtendedFloatingActionButton
 
-        val btnMapa = findViewById<Button>(R.id.btnMapa)
+        val btnConsultar = findViewById<Button>(R.id.btnConsultar)
+        btnConsultar.setOnClickListener {
+            startActivity(Intent(this, ConsultarActivity::class.java))
+        }
 
+        val btnMapa = findViewById<Button>(R.id.btnMapa)
         btnMapa.setOnClickListener {
             startActivity(Intent(this, Mapa::class.java))
         }
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun setupWebView(webView: WebView) {
+        webView.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): Boolean {
+                view?.loadUrl(request?.url.toString())
+                return true
+            }
+        }
+        val settings = webView.settings
+        settings.javaScriptEnabled = true
+        settings.domStorageEnabled = true
+        settings.setSupportZoom(true)
+        settings.builtInZoomControls = true
+        settings.displayZoomControls = false
+        settings.loadWithOverviewMode = true
+        settings.useWideViewPort = true
+        settings.allowFileAccess = true
+        settings.allowContentAccess = true
+        settings.loadsImagesAutomatically = true
     }
 
     private fun abrirLink(url: String) {
@@ -97,11 +101,12 @@ class MainActivity : AppCompatActivity() {
 
     // 🔙 Botón atrás dentro del WebView
     override fun onBackPressed() {
-        val webView = findViewById<WebView>(R.id.webView)
-        if (webView.canGoBack()) {
-            webView.goBack()
-        } else {
-            super.onBackPressed()
+        val webFacebook = findViewById<WebView>(R.id.webFacebook)
+        val webInstagram = findViewById<WebView>(R.id.webInstagram)
+        when {
+            webFacebook.canGoBack() -> webFacebook.goBack()
+            webInstagram.canGoBack() -> webInstagram.goBack()
+            else -> super.onBackPressed()
         }
     }
 }
