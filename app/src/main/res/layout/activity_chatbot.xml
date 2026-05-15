@@ -2,10 +2,52 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:layout_centerInParent="true"
     android:fitsSystemWindows="true"
-    android:background="#FFFFFF">
+    android:background="#F0F4F8">
 
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="#003972"
+        android:elevation="4dp">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/escom_logo"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ESCOMbot"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Asistente virtual ESCOM"
+                android:textColor="#AACCEE"
+                android:textSize="11sp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Área de mensajes -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -14,62 +56,88 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:clipToPadding="false"/>
 
+        <!-- Panel de sugerencias iniciales -->
         <LinearLayout
             android:id="@+id/layoutSuggestions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="16dp"
+            android:padding="24dp"
             android:visibility="visible"
             android:layout_centerInParent="true">
 
             <ImageView
-                android:layout_width="130dp"
-                android:layout_height="120dp"
-                android:layout_marginBottom="1dp"
-                android:src="@drawable/escom_logo" />
+                android:layout_width="100dp"
+                android:layout_height="90dp"
+                android:layout_marginBottom="12dp"
+                android:src="@drawable/escom_logo"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/bg_bot_bubble"
-                android:padding="12dp"
+                android:text="ESCOMbot"
+                android:textColor="#003972"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="¿En qué te puedo ayudar hoy?"
-                android:textColor="#FFFFFF" />
+                android:textColor="#555555"
+                android:textSize="14sp"
+                android:layout_marginBottom="20dp"/>
 
         </LinearLayout>
 
     </RelativeLayout>
 
+    <!-- Área de input -->
     <LinearLayout
         android:id="@+id/layoutInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="8dp"
-        android:background="#FFFFFF">
+        android:paddingStart="12dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:gravity="center_vertical"
+        android:background="#FFFFFF"
+        android:elevation="4dp">
 
         <EditText
             android:id="@+id/editTextMessage"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="#000000"
-            android:textColorHint="#888888"
+            android:textColor="#1A1A1A"
+            android:textColorHint="#999999"
             android:hint="Escribe tu pregunta..."
             android:background="@drawable/bg_input_field"
-            android:padding="10dp" />
+            android:padding="12dp"
+            android:textSize="14sp"
+            android:maxLines="4"
+            android:inputType="textMultiLine|textCapSentences"/>
 
         <ImageButton
             android:id="@+id/btnSend"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="6dp"
             android:src="@drawable/ic_send"
-            android:background="?android:attr/selectableItemBackgroundBorderless" />
+            android:background="@drawable/bg_send_button"
+            android:padding="10dp"
+            android:contentDescription="Enviar"/>
+
     </LinearLayout>
 </LinearLayout>

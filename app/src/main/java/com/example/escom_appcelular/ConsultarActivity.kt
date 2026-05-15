@@ -37,9 +37,6 @@ class ConsultarActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        findViewById<LinearLayout>(R.id.btnCienciasBasicas).setOnClickListener {
-            abrirProfesores("Ciencias Básicas")
-        }
         findViewById<LinearLayout>(R.id.btnISC).setOnClickListener {
             abrirProfesores("Ingeniería en Sistemas Computacionales")
         }

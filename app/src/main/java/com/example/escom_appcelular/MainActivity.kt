@@ -1,15 +1,18 @@
 package com.example.escom_appcelular
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.widget.Button
+import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
@@ -18,6 +21,37 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // ===== Canales de notificación =====
+        NotificationHelper.createChannels(this)
+
+        // ===== Drawer / Hamburguesa =====
+        val drawerLayout = findViewById<DrawerLayout>(R.id.drawerLayout)
+        val btnHamburger = findViewById<ImageButton>(R.id.btnHamburger)
+        val menuRecordatorios = findViewById<LinearLayout>(R.id.menuRecordatorios)
+        val menuAcercaDe = findViewById<LinearLayout>(R.id.menuAcercaDe)
+
+        btnHamburger.setOnClickListener {
+            if (drawerLayout.isDrawerOpen(androidx.core.view.GravityCompat.START)) {
+                drawerLayout.closeDrawer(androidx.core.view.GravityCompat.START)
+            } else {
+                drawerLayout.openDrawer(androidx.core.view.GravityCompat.START)
+            }
+        }
+
+        menuRecordatorios.setOnClickListener {
+            drawerLayout.closeDrawer(androidx.core.view.GravityCompat.START)
+            startActivity(Intent(this, RecordatoriosActivity::class.java))
+        }
+
+        menuAcercaDe.setOnClickListener {
+            drawerLayout.closeDrawer(androidx.core.view.GravityCompat.START)
+            AlertDialog.Builder(this)
+                .setTitle("Acerca de ESCOMobile")
+                .setMessage("ESCOMobile v1.0\n\nAplicación informativa de la Escuela Superior de Cómputo del IPN.\n\nDesarrollada para facilitar el acceso a información académica, becas, servicio social y más.")
+                .setPositiveButton("Cerrar", null)
+                .show()
+        }
 
         // ===== PDF URL =====
         val pdfUrl = "https://www.ipn.mx/assets/files/website/docs/inicio/calendarioipn-escolarizada.pdf"

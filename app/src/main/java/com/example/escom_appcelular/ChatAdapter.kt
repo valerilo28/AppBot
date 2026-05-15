@@ -1,6 +1,10 @@
 package com.example.escom_appcelular
 
 import android.animation.ObjectAnimator
+import android.graphics.Color
+import android.graphics.Typeface
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,7 +12,10 @@ import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import io.noties.markwon.Markwon
-import kotlin.apply
+import io.noties.markwon.core.MarkwonTheme
+import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
+import io.noties.markwon.ext.tables.TablePlugin
+import io.noties.markwon.linkify.LinkifyPlugin
 import kotlin.collections.forEachIndexed
 
 class ChatAdapter(private val messageList: List<Message>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -52,14 +59,12 @@ class ChatAdapter(private val messageList: List<Message>) : RecyclerView.Adapter
         super.onViewAttachedToWindow(holder)
         if (holder !is TypingViewHolder && holder.adapterPosition == messageList.size - 1) {
             holder.itemView.startAnimation(
-                AnimationUtils.loadAnimation(
-                    holder.itemView.context, R.anim.fade_in
-                )
+                AnimationUtils.loadAnimation(holder.itemView.context, R.anim.fade_in)
             )
         }
     }
 
-    // --- ViewHolders ---
+    // ── ViewHolders ──────────────────────────────────────────────
 
     class TypingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind() {
@@ -76,11 +81,35 @@ class ChatAdapter(private val messageList: List<Message>) : RecyclerView.Adapter
     }
 
     class BotViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val markwon = Markwon.create(itemView.context)
+
+        private val markwon: Markwon = Markwon.builder(itemView.context)
+            .usePlugin(StrikethroughPlugin.create())
+            .usePlugin(TablePlugin.create(itemView.context))
+            .usePlugin(LinkifyPlugin.create())
+            .usePlugin(io.noties.markwon.core.CorePlugin.create())
+            .build()
+
         fun bind(message: Message) {
             val textView = itemView.findViewById<TextView>(R.id.textMessageBot)
             textView.setTextIsSelectable(true)
-            markwon.setMarkdown(textView, message.text)
+
+            // Pre-procesar el texto para mejorar la presentación:
+            // - Asegurar salto de línea antes de listas
+            // - Limpiar asteriscos dobles sueltos
+            val processed = preprocessMarkdown(message.text)
+            markwon.setMarkdown(textView, processed)
+        }
+
+        /**
+         * Mejora el markdown antes de renderizarlo:
+         * - Agrega línea en blanco antes de listas para que Markwon las detecte
+         * - Normaliza encabezados sin espacio (##Titulo → ## Titulo)
+         */
+        private fun preprocessMarkdown(text: String): String {
+            return text
+                .replace(Regex("(\\n)([-*]\\s)")) { "\n\n${it.groupValues[2]}" }
+                .replace(Regex("(^|\\n)(#{1,3})([^\\s#])")) { "${it.groupValues[1]}${it.groupValues[2]} ${it.groupValues[3]}" }
+                .trimEnd()
         }
     }
 

@@ -206,18 +206,54 @@ class ChatbotActivity : AppCompatActivity() {
     private fun displaySuggestionButtons(sugerencias: List<String>) {
         layoutSuggestions.removeAllViews()
 
+        // Re-agregar logo y texto de bienvenida
+        val logo = android.widget.ImageView(this).apply {
+            setImageResource(R.drawable.escom_logo)
+            layoutParams = LinearLayout.LayoutParams(
+                resources.getDimensionPixelSize(android.R.dimen.app_icon_size) * 2,
+                resources.getDimensionPixelSize(android.R.dimen.app_icon_size) * 2
+            ).apply { bottomMargin = 24 }
+            adjustViewBounds = true
+            scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+        }
+        layoutSuggestions.addView(logo)
+
+        val titulo = android.widget.TextView(this).apply {
+            text = "ESCOMbot"
+            setTextColor(android.graphics.Color.parseColor("#003972"))
+            textSize = 18f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = 8 }
+        }
+        layoutSuggestions.addView(titulo)
+
+        val subtitulo = android.widget.TextView(this).apply {
+            text = "¿En qué te puedo ayudar hoy?"
+            setTextColor(android.graphics.Color.parseColor("#555555"))
+            textSize = 14f
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = 24 }
+        }
+        layoutSuggestions.addView(subtitulo)
+
         for (texto in sugerencias) {
             val btn = Button(this).apply {
                 this.text = texto
                 this.isAllCaps = false
-                this.setTextColor(android.graphics.Color.WHITE)
+                this.textSize = 13f
+                this.setTextColor(android.graphics.Color.parseColor("#003972"))
                 this.background = androidx.core.content.ContextCompat.getDrawable(
-                    context, R.drawable.bg_bot_bubble
+                    context, R.drawable.bg_suggestion_chip
                 )
                 val params = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { setMargins(0, 8, 0, 8) }
+                ).apply { setMargins(0, 6, 0, 6) }
                 this.layoutParams = params
                 setOnClickListener { sendMessage(texto) }
             }

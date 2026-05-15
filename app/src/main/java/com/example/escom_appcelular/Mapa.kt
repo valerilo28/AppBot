@@ -35,6 +35,9 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
     private var marcadorActual: Marker? = null
     private var nivelActual = 1
 
+    // Mapa de codigoMapa → lista de áreas con esa ubicación
+    private val areasPorCodigo = mutableMapOf<String, MutableList<org.json.JSONObject>>()
+
     private val tiposSeleccionados = mutableSetOf(
         "Salon", "Sala", "Area Comun", "Area Administrativa",
         "Cubiculo", "Laboratorio", "Club"
@@ -135,6 +138,9 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        // ── Cargar áreas administrativas desde assets ─────────────
+        cargarAreasPorCodigo()
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -751,16 +757,102 @@ class Mapa : AppCompatActivity(), OnMapReadyCallback {
         marcadorActual = null
         val tag    = polygon.tag as? JSONObject ?: return
         val codigo = tag.optString("codigo", "sin código")
+        val tipo   = tag.optString("tipo", "")
         val lat    = tag.optDouble("lat", Double.NaN)
         val lng    = tag.optDouble("lng", Double.NaN)
-        if (!lat.isNaN() && !lng.isNaN()) {
-            marcadorActual = map.addMarker(
-                MarkerOptions()
-                    .position(LatLng(lat, lng))
-                    .title("Código: $codigo")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-            )
-            marcadorActual?.showInfoWindow()
+        if (lat.isNaN() || lng.isNaN()) return
+
+        val pos = LatLng(lat, lng)
+
+        if (tipo == "Area Administrativa") {
+            val areas = areasPorCodigo[codigo]
+            if (!areas.isNullOrEmpty()) {
+                mostrarDialogoArea(codigo, areas, pos)
+                return
+            }
+        }
+
+        // Comportamiento por defecto para otros tipos
+        marcadorActual = map.addMarker(
+            MarkerOptions()
+                .position(pos)
+                .title("Código: $codigo")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+        )
+        marcadorActual?.showInfoWindow()
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Diálogo de área administrativa
+    // ─────────────────────────────────────────────────────────────
+
+    private fun mostrarDialogoArea(codigo: String, areas: List<JSONObject>, pos: LatLng) {
+        // Si hay varias áreas en el mismo polígono, mostrar lista para elegir
+        if (areas.size == 1) {
+            mostrarDetalleArea(areas[0], pos)
+        } else {
+            val nombres = areas.map { it.optString("area", "Área") }.toTypedArray()
+            AlertDialog.Builder(this)
+                .setTitle("Áreas en esta ubicación")
+                .setItems(nombres) { _, which ->
+                    mostrarDetalleArea(areas[which], pos)
+                }
+                .show()
+        }
+    }
+
+    private fun mostrarDetalleArea(area: JSONObject, pos: LatLng) {
+        val nombre      = area.optString("area", "")
+        val responsable = area.optString("responsable", "")
+        val cargo       = area.optString("cargo", "")
+        val correo      = area.optString("correo", "")
+        val extension   = area.optString("extension", "")
+        val ubicacion   = area.optString("ubicacion", "")
+
+        val mensaje = buildString {
+            if (cargo.isNotEmpty() && cargo != nombre) append("$cargo\n\n")
+            if (responsable.isNotEmpty() && responsable != "-----") append("👤 $responsable\n")
+            if (extension.isNotEmpty()) append("📞 Ext. $extension\n")
+            if (correo.isNotEmpty() && correo != "-----") append("✉️ $correo\n")
+            if (ubicacion.isNotEmpty()) append("\n📍 $ubicacion")
+        }
+
+        // Poner marcador en el mapa
+        marcadorActual?.remove()
+        marcadorActual = map.addMarker(
+            MarkerOptions()
+                .position(pos)
+                .title(nombre)
+                .snippet(cargo)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
+        )
+        marcadorActual?.showInfoWindow()
+
+        AlertDialog.Builder(this)
+            .setTitle(nombre)
+            .setMessage(mensaje)
+            .setPositiveButton("Cerrar", null)
+            .show()
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Carga de áreas desde assets/areas.json
+    // ─────────────────────────────────────────────────────────────
+
+    private fun cargarAreasPorCodigo() {
+        try {
+            val json = assets.open("areas.json")
+                .bufferedReader().use { it.readText() }
+            val array = JSONArray(json)
+            for (i in 0 until array.length()) {
+                val obj    = array.getJSONObject(i)
+                val codigo = obj.optString("codigoMapa", "")
+                if (codigo.isNotEmpty()) {
+                    areasPorCodigo.getOrPut(codigo) { mutableListOf() }.add(obj)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("Mapa", "Error cargando areas.json: ${e.message}")
         }
     }
 

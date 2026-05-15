@@ -140,44 +140,6 @@
                     android:orientation="vertical"
                     android:background="#FFFFFF">
 
-                    <!-- Ciencias Básicas -->
-                    <LinearLayout
-                        android:id="@+id/btnCienciasBasicas"
-                        android:layout_width="match_parent"
-                        android:layout_height="56dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?attr/selectableItemBackground">
-
-                        <ImageView
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:src="@drawable/ic_star_circle"
-                            android:layout_marginEnd="14dp"/>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Ciencias Básicas"
-                            android:textSize="15sp"
-                            android:textColor="#1A1A1A"/>
-
-                        <ImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:src="@android:drawable/arrow_up_float"
-                            android:rotation="90"
-                            android:alpha="0.4"/>
-                    </LinearLayout>
-
-                    <View android:layout_width="match_parent" android:layout_height="1dp"
-                        android:background="#F0F0F0" android:layout_marginStart="58dp"/>
-
                     <!-- ISC -->
                     <LinearLayout
                         android:id="@+id/btnISC"
