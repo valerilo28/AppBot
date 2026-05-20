@@ -11,12 +11,12 @@
 
     <!-- Avatar del bot -->
     <ImageView
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
         android:layout_gravity="bottom"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="4dp"
-        android:src="@drawable/escom_logo"
+        android:src="@drawable/escombotlogo"
         android:scaleType="fitCenter"
         android:adjustViewBounds="true"/>
 
