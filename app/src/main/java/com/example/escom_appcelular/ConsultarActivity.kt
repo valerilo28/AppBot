@@ -52,9 +52,8 @@ class ConsultarActivity : AppCompatActivity() {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         }
 
-        // En ConsultarActivity, cambia el click de tvBecas:
         findViewById<LinearLayout>(R.id.tvBecas).setOnClickListener {
-            startActivity(Intent(this, BecasListaActivity::class.java))
+            abrirUrl("https://www.escom.ipn.mx/SSEIS/apoyoseducativos/servicios/becas.php")
         }
         findViewById<LinearLayout>(R.id.tvServicioSocial).setOnClickListener {
             abrirUrl("https://www.escom.ipn.mx/SSEIS/apoyoseducativos/servicios/servicioSocial.php")
